@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seagull Web</title>
+
+    <style>
+        canvas {
+            width: 400px;
+            aspect-ratio: 1/2;
+            border: 1px solid gray;
+
+            image-rendering: pixelated;
+        }
+
+        .controls {
+            font-size: 14px;
+        }
+
+        .controls button {
+            padding: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls">
+        <button id="btnRun">Run</button>
+        <button id="btnStep">Step 1</button>
+        <button id="btnStep10">Step 10</button>
+
+        <div class="info">Generation: <span id="infoGenerationCount">0</span></div>
+
+        <div class="seedStates">
+            <select name="seedStates" id="selectSeedStates">
+                <option value="EMPTY">Empty</option>
+                <option value="RANDOM">Random</option>
+                <option value="GLIDER">Glider</option>
+            </select>
+
+            <button id="btnUseSeedState">Apply</button>
+        </div>
+    </div>
+    <canvas width="0" height="0"></canvas>
+    <script src="seagull.app.js" type="module"></script>
+
+</body>
+
+</html>
