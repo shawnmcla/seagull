@@ -25,7 +25,7 @@ class StateSeeder {
         }
     }
 
-    apply(module) { throw new Error("Unimplemented"); }
+    apply() { throw new Error("Unimplemented"); }
 }
 
 class EmptyStateSeeder extends StateSeeder {
@@ -89,6 +89,8 @@ class Seagull {
     _imageData;
     _running = false;
     _runStepCallback = null;
+    _minStepInterval = 1000 / 5;
+    _lastStepTs = 0;
 
     constructor(module, canvas, width = INITIAL_GRID_WIDTH, height = INITIAL_GRID_HEIGHT) {
         if (!module) throw "Module is required";
@@ -105,10 +107,17 @@ class Seagull {
         this.canvas.height = height;
 
         this.canvas.style.aspectRatio = this.ratio;
+
+        this.maxStepsPerSecond = 5;
     }
 
     get generation() {
         return this.module._getGeneration();
+    }
+
+    setMaxStepsPerSecond(maxSteps){
+        this.maxStepsPerSecond = maxSteps;
+        this._minStepInterval = 1000 / maxSteps;
     }
 
     applyStateSeeder(seeder){
@@ -153,11 +162,15 @@ class Seagull {
         this.module._step();
     }
 
-    _runStep() {
+    _runStep(ts = 0) {
         if (!this._running) return;
+        
+        if(ts - this._lastStepTs >= this._minStepInterval){
+            this._lastStepTs = ts;
+            this.step();
+            this._runStepCallback();
+        }
 
-        this.step();
-        this._runStepCallback();
         requestAnimationFrame(this._runStep.bind(this));
     }
 }
@@ -176,6 +189,8 @@ class SeagullUI {
         this.buttonUseSeedState = document.querySelector('#btnUseSeedState');
 
         this.generationCount = document.querySelector("#infoGenerationCount");
+
+        this.numberMaxStepsPerSecond = document.querySelector("#numMaxStepsPerSecond");
 
         this.buttonRun.addEventListener('click', () => {
             if (this.instance._running) {
@@ -217,6 +232,12 @@ class SeagullUI {
             }
 
             this.updateGenerationCount();
+        });
+
+        this.numberMaxStepsPerSecond.addEventListener('input', () => {
+            const newValue = parseInt(this.numberMaxStepsPerSecond.value);
+            if(Number.isNaN(newValue)) return;
+            this.instance.setMaxStepsPerSecond(newValue);
         });
     }
 
