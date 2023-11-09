@@ -8,11 +8,11 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #else
-#define EMSCRIPTEN_KEEPALIVE // nil
+#define EMSCRIPTEN_KEEPALIVE 
 #endif
 
 #define RGBA_WHITE 0xFFFFFFFF;
-#define RGBA_BLACK 0x000000FF;
+#define RGBA_BLACK 0xFF000000;
 
 static uint8_t *grid1 = NULL;
 static uint8_t *grid2 = NULL;
@@ -78,7 +78,6 @@ void setGeneration(int newGeneration)
 	generation = newGeneration;
 }
 
-
 EMSCRIPTEN_KEEPALIVE
 void updateBitmap()
 {
@@ -90,17 +89,11 @@ void updateBitmap()
 			int cell = current[y * gridWidth + x];
 			if (cell == 1)
 			{
-				bitmap[index] = 0xFF000000;
-				// bitmap[index+1] = 0x00;
-				// bitmap[index+2] = 0x00;
-				// bitmap[index+3] = 0xFF;
+				bitmap[index] = RGBA_BLACK;
 			}
 			else
 			{
-				bitmap[index] = 0xFFFFFFFF;
-				// bitmap[index+1] = 0xFF;
-				// bitmap[index+2] = 0xFF;
-				// bitmap[index+3] = 0xFF;
+				bitmap[index] = RGBA_WHITE;
 			}
 		}
 	}

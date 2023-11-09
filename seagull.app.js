@@ -7,8 +7,8 @@ import Module from './seagull.js';
  * 
  */
 
-const INITIAL_GRID_WIDTH = 256;
-const INITIAL_GRID_HEIGHT = 256;
+const INITIAL_GRID_WIDTH = 10;
+const INITIAL_GRID_HEIGHT = 10;
 
 class StateSeeder {
     getGrid(module) {
@@ -47,8 +47,15 @@ class RandomStateSeeder extends StateSeeder {
     apply(module){
         const grid = this.getGrid(module);
         const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
-        for(let i = 0; i < grid.size; i++){ // TODO this is inexact
-            arr[i] = Math.random() >= (1 - this.liveRate);
+        
+        for(let i = 0; i < grid.size; i++){
+            arr[i] = 0;
+        }
+
+        for(let y = 0; y < grid.height; y++){
+            for(let x = 0; x < grid.width; x++){
+                arr[y * grid.width + x] = Math.random() >= (1 - this.liveRate);
+            }
         }
     }
 }
@@ -56,11 +63,21 @@ class RandomStateSeeder extends StateSeeder {
 class GliderStateSeeder extends StateSeeder {
     apply(module){
         const grid = this.getGrid(module);
-        if(grid.width < 3 || grid.height < 3) throw new Error("Glider requires at least a 3x3 grid");
+        if(grid.width < 4 || grid.height < 4) throw new Error("Glider requires at least a 3x3 grid");
 
         const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
 
-        arr
+        for(let i = 0; i < grid.size; i++){
+            arr[i] = 0;
+        }
+
+        arr[1 * grid.width + 2] = 1;
+
+        arr[2 * grid.width + 3] = 1;
+
+        arr[3 * grid.width + 1] = 1;
+        arr[3 * grid.width + 2] = 1;
+        arr[3 * grid.width + 3] = 1;
     }
 }
 
@@ -79,8 +96,8 @@ class Seagull {
         this.module = module;
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
-        this.width = width;
-        this.height = height;
+        this.width = width + 2;
+        this.height = height + 2;
 
         this.ratio = this.width / this.height;
 
@@ -118,9 +135,9 @@ class Seagull {
         if (result < 0) throw new Error(`Initialization failed with error code ${result}`);
 
         this._bitmapOffset = this.module._getBitmap();
-        this._bitmapArrLength = this.width * this.height * 4;
+        this._bitmapArrLength = (this.width - 2) * (this.height - 2) * 4;
         this._bitmapArray = new Uint8ClampedArray(this.module.HEAPU8.subarray(0, 1).buffer, this._bitmapOffset, this._bitmapArrLength);
-        this._imageData = new ImageData(this._bitmapArray, this.width, this.height);
+        this._imageData = new ImageData(this._bitmapArray, this.width - 2, this.height - 2);
     }
 
     step() {
@@ -184,7 +201,6 @@ class SeagullUI {
 
         this.buttonUseSeedState.addEventListener('click', () => {
             const seedType = this.selectSeedStates.value;
-            console.log("Will apply: ", seedType);
 
             switch(seedType){
                 case "EMPTY":
@@ -192,6 +208,9 @@ class SeagullUI {
                     break;
                 case "RANDOM":
                     this.instance.applyStateSeeder(new RandomStateSeeder(0.1));
+                    break;
+                case "GLIDER":
+                    this.instance.applyStateSeeder(new GliderStateSeeder());
                     break;
                 default:
                     throw "TODO";
