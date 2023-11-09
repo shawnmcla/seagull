@@ -7,8 +7,8 @@ import Module from './seagull.js';
  * 
  */
 
-const INITIAL_GRID_WIDTH = 32;
-const INITIAL_GRID_HEIGHT = 32;
+const INITIAL_GRID_WIDTH = 512;
+const INITIAL_GRID_HEIGHT = 512;
 
 class StateSeeder {
     getGrid(module) {
@@ -29,45 +29,62 @@ class StateSeeder {
 }
 
 class EmptyStateSeeder extends StateSeeder {
-    apply(module){
+    apply(module) {
         const grid = this.getGrid(module);
         const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
-        for(let i = 0; i < grid.size; i++){
+        for (let i = 0; i < grid.size; i++) {
             arr[i] = 0;
         }
     }
 }
 
 class RandomStateSeeder extends StateSeeder {
-    constructor(liveRate = 0.5){
+    constructor(liveRate = 0.5) {
         super();
         this.liveRate = liveRate;
     }
 
-    apply(module){
+    apply(module) {
         const grid = this.getGrid(module);
         const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
-        
-        for(let i = 0; i < grid.size; i++){
+
+        for (let i = 0; i < grid.size; i++) {
             arr[i] = 0;
         }
 
-        for(let y = 0; y < grid.height; y++){
-            for(let x = 0; x < grid.width; x++){
+        for (let y = 1; y < grid.height - 1; y++) {
+            for (let x = 1; x < grid.width - 1; x++) {
                 arr[y * grid.width + x] = Math.random() >= (1 - this.liveRate);
             }
         }
     }
 }
 
-class GliderStateSeeder extends StateSeeder {
-    apply(module){
+class EvenStateSeeder extends StateSeeder {
+    apply(module) {
         const grid = this.getGrid(module);
-        if(grid.width < 4 || grid.height < 4) throw new Error("Glider requires at least a 3x3 grid");
+        const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
+
+        for (let i = 0; i < grid.size; i++) {
+            arr[i] = 0;
+        }
+
+        for (let y = 1; y < grid.height - 1; y++) {
+            for (let x = 1; x < grid.width - 1; x++) {
+                arr[y * grid.width + x] = ((x + y) % 2 == 0) ? 1 : 0;
+            }
+        }
+    }
+}
+
+class GliderStateSeeder extends StateSeeder {
+    apply(module) {
+        const grid = this.getGrid(module);
+        if (grid.width < 4 || grid.height < 4) throw new Error("Glider requires at least a 3x3 grid");
 
         const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
 
-        for(let i = 0; i < grid.size; i++){
+        for (let i = 0; i < grid.size; i++) {
             arr[i] = 0;
         }
 
@@ -115,20 +132,20 @@ class Seagull {
         return this.module._getGeneration();
     }
 
-    setMaxStepsPerSecond(maxSteps){
+    setMaxStepsPerSecond(maxSteps) {
         this.maxStepsPerSecond = maxSteps;
         this._minStepInterval = 1000 / maxSteps;
     }
 
-    applyStateSeeder(seeder){
+    applyStateSeeder(seeder) {
         seeder.apply(this.module);
         this.module._setGeneration(0);
         this.module._updateBitmap();
         this.draw();
     }
 
-    setCell(x, y, state){
-        this.module._setCell(x+1, y+1, state);
+    setCell(x, y, state) {
+        this.module._setCell(x + 1, y + 1, state);
     }
 
     run(callback = null) {
@@ -156,7 +173,13 @@ class Seagull {
     }
 
     step() {
-        this.module._step();
+        this.module._step(1);
+        this.ctx.putImageData(this._imageData, 0, 0);
+    }
+
+    stepMany(count){
+        if(typeof count !== 'number' || count < 0 || count > 1000) throw new Error("Invalid count for steps: " + count);
+        this.module._step(count);
         this.ctx.putImageData(this._imageData, 0, 0);
     }
 
@@ -165,13 +188,13 @@ class Seagull {
     }
 
     stepNoDraw() {
-        this.module._step();
+        this.module._step(1);
     }
 
     _runStep(ts = 0) {
         if (!this._running) return;
-        
-        if(ts - this._lastStepTs >= this._minStepInterval){
+
+        if (ts - this._lastStepTs >= this._minStepInterval) {
             this._lastStepTs = ts;
             this.step();
             this._runStepCallback();
@@ -194,9 +217,12 @@ class SeagullUI {
         this.selectSeedStates = document.querySelector('#selectSeedStates');
         this.buttonUseSeedState = document.querySelector('#btnUseSeedState');
 
-        this.generationCount = document.querySelector("#infoGenerationCount");
+        this.infoGenerationCount = document.querySelector("#infoGenerationCount");
+        this.infoGridWidth = document.querySelector("#infoGridWidth");
+        this.infoGridHeight = document.querySelector("#infoGridHeight");
 
         this.numberMaxStepsPerSecond = document.querySelector("#numMaxStepsPerSecond");
+        this.numberGridDisplayWidth = document.querySelector("#numGridDisplayWidth");
 
         this.canvas = this.instance.canvas;
         this.canvas.addEventListener('click', (e) => {
@@ -216,27 +242,25 @@ class SeagullUI {
                 this.instance.stop();
                 this.buttonRun.textContent = "Run";
             } else {
-                this.instance.run(() => this.updateGenerationCount());
+                this.instance.run(() => this.updateUiInfo());
                 this.buttonRun.textContent = "Stop";
             }
         });
 
         this.buttonStep.addEventListener('click', () => {
             this.instance.step();
-            this.updateGenerationCount();
+            this.updateUiInfo();
         });
 
         this.buttonStep10.addEventListener('click', () => {
-            for (let i = 0; i < 9; i++) this.instance.stepNoDraw();
-            this.instance.step();
-
-            this.updateGenerationCount();
+            this.instance.stepMany(10);
+            this.updateUiInfo();
         });
 
         this.buttonUseSeedState.addEventListener('click', () => {
             const seedType = this.selectSeedStates.value;
 
-            switch(seedType){
+            switch (seedType) {
                 case "EMPTY":
                     this.instance.applyStateSeeder(new EmptyStateSeeder());
                     break;
@@ -246,22 +270,35 @@ class SeagullUI {
                 case "GLIDER":
                     this.instance.applyStateSeeder(new GliderStateSeeder());
                     break;
+                case "EVEN":
+                    this.instance.applyStateSeeder(new EvenStateSeeder());
+                    break;
                 default:
                     throw "TODO";
             }
 
-            this.updateGenerationCount();
+            this.updateUiInfo();
         });
 
         this.numberMaxStepsPerSecond.addEventListener('input', () => {
             const newValue = parseInt(this.numberMaxStepsPerSecond.value);
-            if(Number.isNaN(newValue)) return;
+            if (Number.isNaN(newValue)) return;
             this.instance.setMaxStepsPerSecond(newValue);
         });
+
+        this.numberGridDisplayWidth.addEventListener('input', () => {
+            const newValue = parseInt(this.numberGridDisplayWidth.value);
+            if (Number.isNaN(newValue)) return;
+            this.instance.canvas.style.width = `${newValue}px`;
+        });
+
+        this.updateUiInfo();
     }
 
-    updateGenerationCount() {
-        this.generationCount.textContent = this.instance.generation;
+    updateUiInfo() {
+        this.infoGenerationCount.textContent = this.instance.generation;
+        this.infoGridWidth.textContent = this.instance.width - 2;
+        this.infoGridHeight.textContent = this.instance.height - 2;
     }
 }
 

@@ -22,7 +22,7 @@
         }
 
         .controls button {
-            padding: 0.5rem;
+            padding: 0.25rem;
         }
     </style>
 </head>
@@ -33,7 +33,20 @@
         <button id="btnStep">Step 1</button>
         <button id="btnStep10">Step 10</button>
 
-        <div class="info">Generation: <span id="infoGenerationCount">0</span></div>
+        <div class="info">
+            <div class="info-generation">
+                Generation: <span id="infoGenerationCount">0</span>
+            </div>
+
+            <div class="info-grid">
+                Grid: <span id="infoGridWidth">0</span> x <span id="infoGridHeight">0</span>
+            </div>
+
+            <div class="info-canvas">
+                Grid display width: 
+                <input type="number" name="numGridDisplayWidth" id="numGridDisplayWidth" value="400" min="128" />
+            </div>
+        </div>
 
         <div class="speed">
             Maximum steps per second
@@ -41,10 +54,12 @@
         </div>
 
         <div class="seedStates">
+            Seed grid:
             <select name="seedStates" id="selectSeedStates">
                 <option value="EMPTY">Empty</option>
                 <option value="RANDOM">Random</option>
                 <option value="GLIDER">Glider</option>
+                <option value="EVEN">Even</option>
             </select>
 
             <button id="btnUseSeedState">Apply</button>

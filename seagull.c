@@ -129,30 +129,33 @@ void showGrid()
 }
 
 EMSCRIPTEN_KEEPALIVE
-void step()
+void step(unsigned count)
 {
-	for (int y = 1; y < gridHeight - 1; ++y)
+	for (size_t i = 0; i < count; i++)
 	{
-		for (int x = 1; x < gridWidth - 1; ++x)
+		generation++;
+		for (int y = 1; y < gridHeight - 1; ++y)
 		{
-			int liveNeigbours = countLiveNeighbours(current, x, y);
+			for (int x = 1; x < gridWidth - 1; ++x)
+			{
+				int liveNeigbours = countLiveNeighbours(current, x, y);
 
-			if (liveNeigbours == 3 || liveNeigbours == 2 && current[y * gridWidth + x] == 1)
-			{
-				previous[y * gridWidth + x] = 1;
-			}
-			else
-			{
-				previous[y * gridWidth + x] = 0;
+				if (liveNeigbours == 3 || liveNeigbours == 2 && current[y * gridWidth + x] == 1)
+				{
+					previous[y * gridWidth + x] = 1;
+				}
+				else
+				{
+					previous[y * gridWidth + x] = 0;
+				}
 			}
 		}
+		tmp = current;
+		current = previous;
+		previous = tmp;
 	}
 
-	tmp = current;
-	current = previous;
-	previous = tmp;
 	updateBitmap();
-	generation++;
 }
 
 void populateGrid(uint8_t *grid)
