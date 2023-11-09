@@ -8,7 +8,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #else
-#define EMSCRIPTEN_KEEPALIVE 
+#define EMSCRIPTEN_KEEPALIVE
 #endif
 
 #define RGBA_WHITE 0xFFFFFFFF;
@@ -40,6 +40,27 @@ int countLiveNeighbours(uint8_t *grid, int x, int y)
 		   grid[(y + 1) * gridWidth + (x - 1)] +
 		   grid[(y + 1) * gridWidth + (x)] +
 		   grid[(y + 1) * gridWidth + (x + 1)];
+}
+
+EMSCRIPTEN_KEEPALIVE
+void updateBitmap()
+{
+	for (int y = 1; y < gridHeight - 1; y++)
+	{
+		for (int x = 1; x < gridWidth - 1; x++)
+		{
+			int index = (y - 1) * (gridWidth - 2) + (x - 1);
+			int cell = current[y * gridWidth + x];
+			if (cell == 1)
+			{
+				bitmap[index] = RGBA_BLACK;
+			}
+			else
+			{
+				bitmap[index] = RGBA_WHITE;
+			}
+		}
+	}
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -79,24 +100,10 @@ void setGeneration(int newGeneration)
 }
 
 EMSCRIPTEN_KEEPALIVE
-void updateBitmap()
+void setCell(int x, int y, int value)
 {
-	for (int y = 1; y < gridHeight - 1; y++)
-	{
-		for (int x = 1; x < gridWidth - 1; x++)
-		{
-			int index = (y - 1) * (gridWidth - 2) + (x - 1);
-			int cell = current[y * gridWidth + x];
-			if (cell == 1)
-			{
-				bitmap[index] = RGBA_BLACK;
-			}
-			else
-			{
-				bitmap[index] = RGBA_WHITE;
-			}
-		}
-	}
+	current[y * gridWidth + x] = value;
+	updateBitmap();
 }
 
 EMSCRIPTEN_KEEPALIVE

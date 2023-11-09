@@ -30,6 +30,21 @@ if (!Object.getOwnPropertyDescriptor(Module["ready"], "_main")) {
  });
 }
 
+if (!Object.getOwnPropertyDescriptor(Module["ready"], "_updateBitmap")) {
+ Object.defineProperty(Module["ready"], "_updateBitmap", {
+  configurable: true,
+  get: function() {
+   abort("You are getting _updateBitmap on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+ Object.defineProperty(Module["ready"], "_updateBitmap", {
+  configurable: true,
+  set: function() {
+   abort("You are setting _updateBitmap on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+  }
+ });
+}
+
 if (!Object.getOwnPropertyDescriptor(Module["ready"], "_getCurrentGrid")) {
  Object.defineProperty(Module["ready"], "_getCurrentGrid", {
   configurable: true,
@@ -120,17 +135,17 @@ if (!Object.getOwnPropertyDescriptor(Module["ready"], "_setGeneration")) {
  });
 }
 
-if (!Object.getOwnPropertyDescriptor(Module["ready"], "_updateBitmap")) {
- Object.defineProperty(Module["ready"], "_updateBitmap", {
+if (!Object.getOwnPropertyDescriptor(Module["ready"], "_setCell")) {
+ Object.defineProperty(Module["ready"], "_setCell", {
   configurable: true,
   get: function() {
-   abort("You are getting _updateBitmap on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+   abort("You are getting _setCell on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
   }
  });
- Object.defineProperty(Module["ready"], "_updateBitmap", {
+ Object.defineProperty(Module["ready"], "_setCell", {
   configurable: true,
   set: function() {
-   abort("You are setting _updateBitmap on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
+   abort("You are setting _setCell on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js");
   }
  });
 }
@@ -1766,6 +1781,8 @@ var asm = createWasm();
 
 var ___wasm_call_ctors = Module["___wasm_call_ctors"] = createExportWrapper("__wasm_call_ctors");
 
+var _updateBitmap = Module["_updateBitmap"] = createExportWrapper("updateBitmap");
+
 var _getCurrentGrid = Module["_getCurrentGrid"] = createExportWrapper("getCurrentGrid");
 
 var _getBitmap = Module["_getBitmap"] = createExportWrapper("getBitmap");
@@ -1778,7 +1795,7 @@ var _getGeneration = Module["_getGeneration"] = createExportWrapper("getGenerati
 
 var _setGeneration = Module["_setGeneration"] = createExportWrapper("setGeneration");
 
-var _updateBitmap = Module["_updateBitmap"] = createExportWrapper("updateBitmap");
+var _setCell = Module["_setCell"] = createExportWrapper("setCell");
 
 var _showGrid = Module["_showGrid"] = createExportWrapper("showGrid");
 

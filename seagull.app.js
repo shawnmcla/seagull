@@ -7,8 +7,8 @@ import Module from './seagull.js';
  * 
  */
 
-const INITIAL_GRID_WIDTH = 10;
-const INITIAL_GRID_HEIGHT = 10;
+const INITIAL_GRID_WIDTH = 32;
+const INITIAL_GRID_HEIGHT = 32;
 
 class StateSeeder {
     getGrid(module) {
@@ -127,6 +127,10 @@ class Seagull {
         this.draw();
     }
 
+    setCell(x, y, state){
+        this.module._setCell(x+1, y+1, state);
+    }
+
     run(callback = null) {
         if (this._running) return;
         this._runStepCallback = callback;
@@ -147,6 +151,8 @@ class Seagull {
         this._bitmapArrLength = (this.width - 2) * (this.height - 2) * 4;
         this._bitmapArray = new Uint8ClampedArray(this.module.HEAPU8.subarray(0, 1).buffer, this._bitmapOffset, this._bitmapArrLength);
         this._imageData = new ImageData(this._bitmapArray, this.width - 2, this.height - 2);
+
+        this.draw();
     }
 
     step() {
@@ -191,6 +197,19 @@ class SeagullUI {
         this.generationCount = document.querySelector("#infoGenerationCount");
 
         this.numberMaxStepsPerSecond = document.querySelector("#numMaxStepsPerSecond");
+
+        this.canvas = this.instance.canvas;
+        this.canvas.addEventListener('click', (e) => {
+            const mx = Math.max(e.offsetX, 0);
+            const my = Math.max(e.offsetY, 0);
+            const cellDimensions = this.canvas.offsetWidth / this.canvas.width;
+            const gx = Math.floor(mx / cellDimensions);
+            const gy = Math.floor(my / cellDimensions);
+            console.log(`Toggling cell at (${gx}, ${gy})`);
+            this.instance.setCell(gx, gy, 1);
+
+            this.instance.draw();
+        });
 
         this.buttonRun.addEventListener('click', () => {
             if (this.instance._running) {
