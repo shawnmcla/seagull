@@ -100,8 +100,9 @@ class Seagull {
     _imageData;
     _running = false;
     _runStepCallback = null;
-    _minStepInterval = 1000 / INITIAL_STEPS_PER_SECOND;
+    _minStepInterval;
     _lastStepTs = 0;
+
     width;
     height;
 
@@ -112,9 +113,8 @@ class Seagull {
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
 
+        this.setMaxStepsPerSecond(INITIAL_STEPS_PER_SECOND);
         this.setSize(width, height);
-
-        this.maxStepsPerSecond = 5;
     }
 
     setSize(newWidth, newHeight) {
@@ -130,7 +130,7 @@ class Seagull {
         this.width = newWidth + 2;
         this.height = newHeight + 2;
 
-        this.initialize();
+        this.initialize(0.1, false);
     }
 
     get generation() {
@@ -200,6 +200,13 @@ class Seagull {
         if (!this._running) return;
 
         if (ts - this._lastStepTs >= this._minStepInterval) {
+            this._iteration += 1;
+
+            if (this._iteration >= 10) {
+                this._iteration = 0;
+                this._chaosSeeder.apply(this.module);
+            }
+
             this._lastStepTs = ts;
             this.step();
             this._runStepCallback();

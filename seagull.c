@@ -11,20 +11,17 @@
 #define EMSCRIPTEN_KEEPALIVE
 #endif
 
-#define RGBA_WHITE 0xFFFFFFFF;
-#define RGBA_BLACK 0xFF000000;
+#define RGBA_ON 0xFFFFFFFF;
+#define RGBA_OFF 0xFF000000;
 
 static uint8_t *grid1 = NULL;
 static uint8_t *grid2 = NULL;
-
 static uint8_t *current = NULL;
 static uint8_t *previous = NULL;
 static uint8_t *tmp = NULL;
-
 static uint32_t *bitmap = NULL;
 
 unsigned long generation = 0;
-
 static unsigned gridWidth = 0;
 static unsigned gridHeight = 0;
 
@@ -53,11 +50,11 @@ void updateBitmap()
 			int cell = current[y * gridWidth + x];
 			if (cell == 1)
 			{
-				bitmap[index] = RGBA_BLACK;
+				bitmap[index] = RGBA_ON;
 			}
 			else
 			{
-				bitmap[index] = RGBA_WHITE;
+				bitmap[index] = RGBA_OFF;
 			}
 		}
 	}
