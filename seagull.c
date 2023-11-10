@@ -45,9 +45,9 @@ int countLiveNeighbours(uint8_t *grid, int x, int y)
 EMSCRIPTEN_KEEPALIVE
 void updateBitmap()
 {
-	for (int y = 1; y < gridHeight - 1; y++)
+	for(unsigned y = 1; y < gridHeight - 1; y++)
 	{
-		for (int x = 1; x < gridWidth - 1; x++)
+		for(unsigned x = 1; x < gridWidth - 1; x++)
 		{
 			int index = (y - 1) * (gridWidth - 2) + (x - 1);
 			int cell = current[y * gridWidth + x];
@@ -109,9 +109,9 @@ void setCell(int x, int y, int value)
 EMSCRIPTEN_KEEPALIVE
 void showGrid()
 {
-	for (int y = 1; y < gridHeight - 1; ++y)
+	for(unsigned y = 1; y < gridHeight - 1; ++y)
 	{
-		for (int x = 1; x < gridWidth - 1; ++x)
+		for(unsigned x = 1; x < gridWidth - 1; ++x)
 		{
 			uint8_t cell = current[y * gridWidth + x];
 			if (cell == 1)
@@ -134,13 +134,13 @@ void step(unsigned count)
 	for (size_t i = 0; i < count; i++)
 	{
 		generation++;
-		for (int y = 1; y < gridHeight - 1; ++y)
+		for(unsigned y = 1; y < gridHeight - 1; ++y)
 		{
-			for (int x = 1; x < gridWidth - 1; ++x)
+			for(unsigned x = 1; x < gridWidth - 1; ++x)
 			{
 				int liveNeigbours = countLiveNeighbours(current, x, y);
 
-				if (liveNeigbours == 3 || liveNeigbours == 2 && current[y * gridWidth + x] == 1)
+				if (liveNeigbours == 3 || (liveNeigbours == 2 && current[y * gridWidth + x] == 1))
 				{
 					previous[y * gridWidth + x] = 1;
 				}
@@ -160,21 +160,16 @@ void step(unsigned count)
 
 void populateGrid(uint8_t *grid)
 {
-	for (int y = 1; y < gridHeight - 1; ++y)
+	for(unsigned y = 1; y < gridHeight - 1; ++y)
 	{
-		for (int x = 1; x < gridWidth - 1; ++x)
+		for(unsigned x = 1; x < gridWidth - 1; ++x)
 		{
 			if ((x + y) % 2 == 0)
-				current[y * gridWidth + x] = 1;
+				grid[y * gridWidth + x] = 1;
 			else
-				current[y * gridWidth + x] = 0;
+				grid[y * gridWidth + x] = 0;
 		}
 	}
-	// SET_CELL(grid, 3, 3, 1);
-	// SET_CELL(grid, 4, 4, 1);
-	// SET_CELL(grid, 2, 5, 1);
-	// SET_CELL(grid, 3, 5, 1);
-	// SET_CELL(grid, 4, 5, 1);
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -1,12 +1,5 @@
 import Module from './seagull.js';
 
-/**
- * TODO STUFF
- * - When obtaining offset and grid dimensions from WASM module,
- *   take into account that we're actually using width-2, height-2
- * 
- */
-
 const INITIAL_GRID_WIDTH = 512;
 const INITIAL_GRID_HEIGHT = 512;
 
@@ -108,6 +101,8 @@ class Seagull {
     _runStepCallback = null;
     _minStepInterval = 1000 / 5;
     _lastStepTs = 0;
+    width;
+    height;
 
     constructor(module, canvas, width = INITIAL_GRID_WIDTH, height = INITIAL_GRID_HEIGHT) {
         if (!module) throw "Module is required";
@@ -115,17 +110,26 @@ class Seagull {
         this.module = module;
         this.canvas = canvas;
         this.ctx = this.canvas.getContext('2d');
-        this.width = width + 2;
-        this.height = height + 2;
 
-        this.ratio = this.width / this.height;
+        this.setSize(width, height);
 
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.maxStepsPerSecond = 5;
+    }
+
+    setSize(newWidth, newHeight) {
+        if (newWidth == this.width && newHeight == this.height) return;
+
+        this.ratio = newWidth / newHeight;
+
+        this.canvas.width = newWidth;
+        this.canvas.height = newHeight;
 
         this.canvas.style.aspectRatio = this.ratio;
 
-        this.maxStepsPerSecond = 5;
+        this.width = newWidth + 2;
+        this.height = newHeight + 2;
+
+        this.initialize();
     }
 
     get generation() {
@@ -177,8 +181,8 @@ class Seagull {
         this.ctx.putImageData(this._imageData, 0, 0);
     }
 
-    stepMany(count){
-        if(typeof count !== 'number' || count < 0 || count > 1000) throw new Error("Invalid count for steps: " + count);
+    stepMany(count) {
+        if (typeof count !== 'number' || count < 0 || count > 1000) throw new Error("Invalid count for steps: " + count);
         this.module._step(count);
         this.ctx.putImageData(this._imageData, 0, 0);
     }
@@ -213,6 +217,7 @@ class SeagullUI {
         this.buttonRun = document.querySelector('#btnRun');
         this.buttonStep = document.querySelector('#btnStep');
         this.buttonStep10 = document.querySelector('#btnStep10');
+        this.buttonStep10 = document.querySelector('#btnStep100');
 
         this.selectSeedStates = document.querySelector('#selectSeedStates');
         this.buttonUseSeedState = document.querySelector('#btnUseSeedState');
@@ -254,6 +259,11 @@ class SeagullUI {
 
         this.buttonStep10.addEventListener('click', () => {
             this.instance.stepMany(10);
+            this.updateUiInfo();
+        });
+
+        this.buttonStep10.addEventListener('click', () => {
+            this.instance.stepMany(100);
             this.updateUiInfo();
         });
 
@@ -308,6 +318,4 @@ Module().then((module) => {
     const ui = new SeagullUI(instance);
 
     window.instance = instance;
-
-    instance.initialize();
 });
