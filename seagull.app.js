@@ -2,6 +2,7 @@ import Module from './seagull.js';
 
 const INITIAL_GRID_WIDTH = 512;
 const INITIAL_GRID_HEIGHT = 512;
+const INITIAL_STEPS_PER_SECOND = 60;
 
 class StateSeeder {
     getGrid(module) {
@@ -99,7 +100,7 @@ class Seagull {
     _imageData;
     _running = false;
     _runStepCallback = null;
-    _minStepInterval = 1000 / 5;
+    _minStepInterval = 1000 / INITIAL_STEPS_PER_SECOND;
     _lastStepTs = 0;
     width;
     height;

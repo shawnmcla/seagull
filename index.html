@@ -7,6 +7,28 @@
     <title>Seagull Web</title>
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            background: #CCC;
+        }
+
+        header {
+            padding: 1em;
+        }
+
+        main {
+            display: flex;
+        }
+
         canvas {
             width: 400px;
             aspect-ratio: 1/2;
@@ -14,61 +36,128 @@
 
             image-rendering: pixelated;
 
-            box-sizing: border-box;
+            margin: 0 auto;
         }
 
         .controls {
-            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+
+            padding: 0em 1em;
+
+            min-width: 30vw;
         }
 
         .controls button {
             padding: 0.25rem;
+
+            border-radius: 0.25em;
+            border: 1px solid #BBB;
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background: #DDD;
+        }
+
+        .controls button:active {
+            background: #CCC;
+        }
+
+        header {
+            text-align: center;
+        }
+
+        div.display {
+            width: 100%;
+        }
+
+        .section {
+            margin-bottom: 1em;
+        }
+
+        img.help {
+            position: relative;
+            display: inline;
+
+            width: 0.95em;
+            height: auto;
+
+            filter: invert(0.4);
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
+        p.bold {
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <div class="controls">
-        <button id="btnRun">Run</button>
-        <button id="btnStep">Step 1</button>
-        <button id="btnStep10">Step 10</button>
-        <button id="btnStep100">Step 100</button>
 
-        <div class="info">
-            <div class="info-generation">
-                Generation: <span id="infoGenerationCount">0</span>
+    <div class="container">
+        <header>
+            <h1>Seagull</h1>
+        </header>
+
+        <main>
+            <div class="controls">
+                <div class="section">
+                    <p>Simulation</p>
+
+                    <button data-button-action="toggle:run" data-button-text1="Run" data-button-text2="Stop"
+                        id="btnRun">Run</button>
+
+                    <button data-button-action="step1" id="btnStep">Step 1</button>
+                    <button data-button-action="step2" id="btnStep10">Step 10</button>
+                    <button data-button-action="step3" id="btnStep100">Step 100</button>
+                </div>
+
+                <div class="section">
+
+                    <p>Speed</p>
+                    <input type="number" name="numMaxStepsPerSecond" id="numMaxStepsPerSecond" value="60" min="1"
+                        max="3600" />
+                    <img src="./assets/question.svg" class="help" title="Measured in max steps per second">
+                </div>
+
+                <div class="section ">
+                    <p>Seed grid</p>
+                    <select name="seedStates" id="selectSeedStates">
+                        <option value="EMPTY">Empty</option>
+                        <option value="RANDOM">Random</option>
+                        <option value="GLIDER">Glider</option>
+                        <option value="EVEN">Even</option>
+                    </select>
+
+                    <button id="btnUseSeedState">Apply</button>
+                </div>
+
+                <div class="section">
+                    <p>Grid display width:</p>
+                    <input type="number" name="numGridDisplayWidth" id="numGridDisplayWidth" value="400" min="128" />
+                </div>
+
+                <div class="section">
+                    <p class="bold">Information</p>
+                    <p class="info-generation">
+                        Generation: <span id="infoGenerationCount">0</span>
+                    </p>
+                    <p class="info-grid">
+                        Grid: <span id="infoGridWidth">0</span> x <span id="infoGridHeight">0</span>
+                    </p>
+                </div>
+
             </div>
 
-            <div class="info-grid">
-                Grid: <span id="infoGridWidth">0</span> x <span id="infoGridHeight">0</span>
+            <div class="display">
+                <canvas width="0" height="0"></canvas>
             </div>
-
-            <div class="info-canvas">
-                Grid display width: 
-                <input type="number" name="numGridDisplayWidth" id="numGridDisplayWidth" value="400" min="128" />
-            </div>
-        </div>
-
-        <div class="speed">
-            Maximum steps per second
-            <input type="number" name="numMaxStepsPerSecond" id="numMaxStepsPerSecond" value="5" min="1" max="360" />
-        </div>
-
-        <div class="seedStates">
-            Seed grid:
-            <select name="seedStates" id="selectSeedStates">
-                <option value="EMPTY">Empty</option>
-                <option value="RANDOM">Random</option>
-                <option value="GLIDER">Glider</option>
-                <option value="EVEN">Even</option>
-            </select>
-
-            <button id="btnUseSeedState">Apply</button>
-        </div>
+        </main>
     </div>
-    <canvas width="0" height="0"></canvas>
     <script src="seagull.app.js" type="module"></script>
-
+    <script src="ui.js"></script>
 </body>
 
 </html>
