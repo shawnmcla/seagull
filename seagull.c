@@ -40,12 +40,13 @@ int countLiveNeighbours(uint8_t *grid, int x, int y)
 }
 
 EMSCRIPTEN_KEEPALIVE
-void updateBitmap()
+void updateBitmap(void)
 {
 	for (unsigned y = 1; y < gridHeight - 1; y++)
 	{
 		for (unsigned x = 1; x < gridWidth - 1; x++)
 		{
+			
 			int index = (y - 1) * (gridWidth - 2) + (x - 1);
 			int cell = current[y * gridWidth + x];
 			uint8_t alpha = cell * 255 / ON_STATE_VALUE;
@@ -55,31 +56,31 @@ void updateBitmap()
 }
 
 EMSCRIPTEN_KEEPALIVE
-uint8_t *getCurrentGrid()
+uint8_t *getCurrentGrid(void)
 {
 	return current;
 }
 
 EMSCRIPTEN_KEEPALIVE
-uint8_t *getBitmap()
+uint8_t *getBitmap(void)
 {
 	return (uint8_t *)bitmap;
 }
 
 EMSCRIPTEN_KEEPALIVE
-int getGridWidth()
+int getGridWidth(void)
 {
 	return gridWidth;
 }
 
 EMSCRIPTEN_KEEPALIVE
-int getGridHeight()
+int getGridHeight(void)
 {
 	return gridHeight;
 }
 
 EMSCRIPTEN_KEEPALIVE
-unsigned long getGeneration()
+unsigned long getGeneration(void)
 {
 	return generation;
 }
@@ -104,7 +105,7 @@ uint8_t getCell(int x, int y)
 }
 
 EMSCRIPTEN_KEEPALIVE
-void showGrid()
+void showGrid(void)
 {
 	for (unsigned y = 1; y < gridHeight - 1; ++y)
 	{
@@ -136,18 +137,22 @@ void step(unsigned count)
 			for (unsigned x = 1; x < gridWidth - 1; ++x)
 			{
 				int liveNeigbours = countLiveNeighbours(current, x, y);
+
 				uint8_t currentCell = current[y * gridWidth + x];
 
 				if (liveNeigbours == 3 || (liveNeigbours == 2 && currentCell == ON_STATE_VALUE))
 				{
 					previous[y * gridWidth + x] = ON_STATE_VALUE;
 				}
-				// else if (currentCell == ON_STATE_VALUE){
-				// 	previous[y * gridWidth + x] = currentCell / 2;
-				// }
-				else if (currentCell >= 20)
+				else if (currentCell == ON_STATE_VALUE){
+					previous[y * gridWidth + x] = currentCell / 2;
+				}
+				else if (currentCell >= 1)
 				{
-					previous[y * gridWidth + x] = currentCell - 20;
+					previous[y * gridWidth + x] = currentCell - 1;
+				}
+				else {
+					previous[y * gridWidth + x] = 0;
 				}
 			}
 		}
@@ -233,14 +238,14 @@ int init(unsigned width, unsigned height)
 }
 
 EMSCRIPTEN_KEEPALIVE
-void cleanup()
+void cleanup(void)
 {
 	free(grid1);
 	free(grid2);
 }
 
 #ifndef __EMSCRIPTEN__
-int main()
+int main(void)
 {
 	// 	printf("MAIN CALLED\n");
 	// 	init(10, 10);

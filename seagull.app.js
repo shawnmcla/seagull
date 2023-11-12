@@ -1,9 +1,73 @@
 import Module from './seagull.js';
 
-const INITIAL_GRID_WIDTH = 100;
-const INITIAL_GRID_HEIGHT = 100;
+const INITIAL_GRID_WIDTH = 512;
+const INITIAL_GRID_HEIGHT = 512;
 const INITIAL_STEPS_PER_SECOND = 60;
 const ON_STATE_VALUE = 100;
+
+class Blueprint {
+    constructor(...cells){
+        this.cells = cells;
+        this.width = 0;
+        this.height = 0;
+
+        for(const cell of this.cells){
+            const [x, y] = cell;
+            if(x > this.width) this.width = x;
+            if(y > this.height) this.height = y;
+        }
+    }
+}
+
+const gliderBlueprint = new Blueprint(
+    [2,0],
+    [3,1],
+    [1,2],
+    [2,2],
+    [3,2]
+);
+
+const ggBlueprint = new Blueprint(
+
+[0, 4],
+[0, 5],
+[1, 4],
+[1, 5],
+[10, 4],
+[10, 5],
+[10, 6],
+[11, 3],
+[11, 7],
+[12, 2],
+[12, 8],
+[13, 2],
+[13, 8],
+[14, 5],
+[15, 3],
+[15, 7],
+[16, 4],
+[16, 5],
+[16, 6],
+[17, 5],
+
+[20, 2],
+[20, 3],
+[20, 4],
+[21, 2],
+[21, 3],
+[21, 4],
+[22, 1],
+[22, 5],
+[24, 0],
+[24, 1],
+[24, 5],
+[24, 6],
+
+[34, 3],
+[34, 4],
+[35, 3],
+[35, 4],
+)
 
 class StateSeeder {
     getGrid(module) {
@@ -21,6 +85,26 @@ class StateSeeder {
     }
 
     apply() { throw new Error("Unimplemented"); }
+}
+
+class BlueprintSeeder extends StateSeeder {
+    constructor(blueprint){
+        super();
+        this.blueprint = blueprint;
+    }
+
+    apply(module, originX = 1, originY = 1){
+        const grid = this.getGrid(module);
+        const arr = new Uint8Array(module.HEAPU8.subarray(0, 1).buffer, grid.offset, grid.size);
+        if(grid.width - 2 < this.blueprint.width || grid.height - 2 < this.blueprint.height) {
+            throw new Error("Grid too small (FIXME)");
+        }
+
+        for(const cell of this.blueprint.cells){
+            const [bpX, bpY ] = cell;
+            arr[(originY + bpY) * grid.width + (originX + bpX)] = ON_STATE_VALUE;
+        }
+    }
 }
 
 class EmptyStateSeeder extends StateSeeder {
@@ -322,9 +406,33 @@ class SeagullUI {
 }
 
 Module().then((module) => {
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector('canvas#main-canvas');
     const instance = new Seagull(module, canvas);
     const ui = new SeagullUI(instance);
 
+    // instance.applyStateSeeder(new GliderStateSeeder());
+
+    const ggseeder = new BlueprintSeeder(ggBlueprint);
+    ggseeder.apply(module, 3, 3);
+    module._updateBitmap();
+    instance.draw();
     window.instance = instance;
 });
+
+const overlayCanvas = document.querySelector('canvas#overlay-canvas');
+const ctx = overlayCanvas.getContext('2d');
+ctx.fillStyle = "#FFFFFF";
+ctx.strokeStyle = "#22FF22";
+ctx.lineWidth = 1;
+for(let y = 0; y < INITIAL_GRID_HEIGHT; y++){
+    ctx.beginPath();
+    ctx.moveTo(0, y * 8);
+    ctx.lineTo(400, y * 8);
+    ctx.stroke();
+}
+for(let x = 0; x < INITIAL_GRID_WIDTH; x++){
+    ctx.beginPath();
+    ctx.moveTo( x * 8, 0);
+    ctx.lineTo(x * 8, 400);
+    ctx.stroke();
+}

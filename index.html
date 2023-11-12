@@ -29,6 +29,10 @@
             display: flex;
         }
 
+        .display {
+            position: relative;
+        }
+
         canvas {
             width: 400px;
             aspect-ratio: 1/2;
@@ -37,6 +41,15 @@
             image-rendering: pixelated;
 
             margin: 0 auto;
+        }
+
+        #overlay-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 400px;
+            aspect-ratio: 1;
+            display: none;
         }
 
         .controls {
@@ -152,7 +165,8 @@
             </div>
 
             <div class="display">
-                <canvas width="0" height="0"></canvas>
+                <canvas id="main-canvas" width="0" height="0"></canvas>
+                <canvas id="overlay-canvas" width="400" height="400"></canvas>
             </div>
         </main>
     </div>
