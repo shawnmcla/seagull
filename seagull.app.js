@@ -1,8 +1,9 @@
 import Module from './seagull.js';
 
-const INITIAL_GRID_WIDTH = 512;
-const INITIAL_GRID_HEIGHT = 512;
+const INITIAL_GRID_WIDTH = 100;
+const INITIAL_GRID_HEIGHT = 100;
 const INITIAL_STEPS_PER_SECOND = 60;
+const ON_STATE_VALUE = 100;
 
 class StateSeeder {
     getGrid(module) {
@@ -48,7 +49,7 @@ class RandomStateSeeder extends StateSeeder {
 
         for (let y = 1; y < grid.height - 1; y++) {
             for (let x = 1; x < grid.width - 1; x++) {
-                arr[y * grid.width + x] = Math.random() >= (1 - this.liveRate);
+                arr[y * grid.width + x] = Math.random() >= (1 - this.liveRate) ? ON_STATE_VALUE : 0;
             }
         }
     }
@@ -65,7 +66,7 @@ class EvenStateSeeder extends StateSeeder {
 
         for (let y = 1; y < grid.height - 1; y++) {
             for (let x = 1; x < grid.width - 1; x++) {
-                arr[y * grid.width + x] = ((x + y) % 2 == 0) ? 1 : 0;
+                arr[y * grid.width + x] = ((x + y) % 2 == 0) ? ON_STATE_VALUE : 0;
             }
         }
     }
@@ -82,13 +83,13 @@ class GliderStateSeeder extends StateSeeder {
             arr[i] = 0;
         }
 
-        arr[1 * grid.width + 2] = 1;
+        arr[1 * grid.width + 3] = ON_STATE_VALUE;
 
-        arr[2 * grid.width + 3] = 1;
+        arr[2 * grid.width + 4] = ON_STATE_VALUE;
 
-        arr[3 * grid.width + 1] = 1;
-        arr[3 * grid.width + 2] = 1;
-        arr[3 * grid.width + 3] = 1;
+        arr[3 * grid.width + 2] = ON_STATE_VALUE;
+        arr[3 * grid.width + 3] = ON_STATE_VALUE;
+        arr[3 * grid.width + 4] = ON_STATE_VALUE;
     }
 }
 

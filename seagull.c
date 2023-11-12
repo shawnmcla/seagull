@@ -11,8 +11,10 @@
 #define EMSCRIPTEN_KEEPALIVE
 #endif
 
-#define RGBA_ON 0xFFFFFFFF;
-#define RGBA_OFF 0xFF000000;
+#define RGBA_ON 0xFFFFFFFF
+#define RGBA_OFF 0xFF000000
+
+#define ON_STATE_VALUE 100
 
 static uint8_t *grid1 = NULL;
 static uint8_t *grid2 = NULL;
@@ -27,35 +29,27 @@ static unsigned gridHeight = 0;
 
 int countLiveNeighbours(uint8_t *grid, int x, int y)
 {
-	return grid[(y)*gridWidth + (x - 1)] +
-		   grid[(y)*gridWidth + (x + 1)] +
-
-		   grid[(y - 1) * gridWidth + (x - 1)] +
-		   grid[(y - 1) * gridWidth + (x)] +
-		   grid[(y - 1) * gridWidth + (x + 1)] +
-
-		   grid[(y + 1) * gridWidth + (x - 1)] +
-		   grid[(y + 1) * gridWidth + (x)] +
-		   grid[(y + 1) * gridWidth + (x + 1)];
+	return (grid[(y)*gridWidth + (x - 1)] == ON_STATE_VALUE) +
+		   (grid[(y)*gridWidth + (x + 1)] == ON_STATE_VALUE) +
+		   (grid[(y - 1) * gridWidth + (x - 1)] == ON_STATE_VALUE) +
+		   (grid[(y - 1) * gridWidth + (x)] == ON_STATE_VALUE) +
+		   (grid[(y - 1) * gridWidth + (x + 1)] == ON_STATE_VALUE) +
+		   (grid[(y + 1) * gridWidth + (x - 1)] == ON_STATE_VALUE) +
+		   (grid[(y + 1) * gridWidth + (x)] == ON_STATE_VALUE) +
+		   (grid[(y + 1) * gridWidth + (x + 1)] == ON_STATE_VALUE);
 }
 
 EMSCRIPTEN_KEEPALIVE
 void updateBitmap()
 {
-	for(unsigned y = 1; y < gridHeight - 1; y++)
+	for (unsigned y = 1; y < gridHeight - 1; y++)
 	{
-		for(unsigned x = 1; x < gridWidth - 1; x++)
+		for (unsigned x = 1; x < gridWidth - 1; x++)
 		{
 			int index = (y - 1) * (gridWidth - 2) + (x - 1);
 			int cell = current[y * gridWidth + x];
-			if (cell == 1)
-			{
-				bitmap[index] = RGBA_ON;
-			}
-			else
-			{
-				bitmap[index] = RGBA_OFF;
-			}
+			uint8_t alpha = cell * 255 / ON_STATE_VALUE;
+			bitmap[index] = (alpha << 24) | 0xFFFFFF;
 		}
 	}
 }
@@ -104,14 +98,20 @@ void setCell(int x, int y, int value)
 }
 
 EMSCRIPTEN_KEEPALIVE
+uint8_t getCell(int x, int y)
+{
+	return current[y * gridWidth + x];
+}
+
+EMSCRIPTEN_KEEPALIVE
 void showGrid()
 {
-	for(unsigned y = 1; y < gridHeight - 1; ++y)
+	for (unsigned y = 1; y < gridHeight - 1; ++y)
 	{
-		for(unsigned x = 1; x < gridWidth - 1; ++x)
+		for (unsigned x = 1; x < gridWidth - 1; ++x)
 		{
 			uint8_t cell = current[y * gridWidth + x];
-			if (cell == 1)
+			if (cell == ON_STATE_VALUE)
 			{
 				printf("X");
 			}
@@ -131,22 +131,27 @@ void step(unsigned count)
 	for (size_t i = 0; i < count; i++)
 	{
 		generation++;
-		for(unsigned y = 1; y < gridHeight - 1; ++y)
+		for (unsigned y = 1; y < gridHeight - 1; ++y)
 		{
-			for(unsigned x = 1; x < gridWidth - 1; ++x)
+			for (unsigned x = 1; x < gridWidth - 1; ++x)
 			{
 				int liveNeigbours = countLiveNeighbours(current, x, y);
+				uint8_t currentCell = current[y * gridWidth + x];
 
-				if (liveNeigbours == 3 || (liveNeigbours == 2 && current[y * gridWidth + x] == 1))
+				if (liveNeigbours == 3 || (liveNeigbours == 2 && currentCell == ON_STATE_VALUE))
 				{
-					previous[y * gridWidth + x] = 1;
+					previous[y * gridWidth + x] = ON_STATE_VALUE;
 				}
-				else
+				// else if (currentCell == ON_STATE_VALUE){
+				// 	previous[y * gridWidth + x] = currentCell / 2;
+				// }
+				else if (currentCell >= 20)
 				{
-					previous[y * gridWidth + x] = 0;
+					previous[y * gridWidth + x] = currentCell - 20;
 				}
 			}
 		}
+
 		tmp = current;
 		current = previous;
 		previous = tmp;
@@ -157,16 +162,22 @@ void step(unsigned count)
 
 void populateGrid(uint8_t *grid)
 {
-	for(unsigned y = 1; y < gridHeight - 1; ++y)
+	for (unsigned y = 1; y < gridHeight - 1; ++y)
 	{
-		for(unsigned x = 1; x < gridWidth - 1; ++x)
+		for (unsigned x = 1; x < gridWidth - 1; ++x)
 		{
 			if ((x + y) % 2 == 0)
-				grid[y * gridWidth + x] = 1;
+				grid[y * gridWidth + x] = ON_STATE_VALUE;
 			else
 				grid[y * gridWidth + x] = 0;
 		}
 	}
+
+	// grid[ (1) * gridWidth + (3) ] = ON_STATE_VALUE;
+	// grid[ (2) * gridWidth + (4) ] = ON_STATE_VALUE;
+	// grid[ (3) * gridWidth + (2) ] = ON_STATE_VALUE;
+	// grid[ (3) * gridWidth + (3) ] = ON_STATE_VALUE;
+	// grid[ (3) * gridWidth + (4) ] = ON_STATE_VALUE;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -216,7 +227,6 @@ int init(unsigned width, unsigned height)
 	current = grid1;
 	previous = grid2;
 
-	populateGrid(grid1);
 	updateBitmap();
 
 	return 1;
@@ -232,11 +242,14 @@ void cleanup()
 #ifndef __EMSCRIPTEN__
 int main()
 {
-	printf("Hello, world\n");
+	// 	printf("MAIN CALLED\n");
+	// 	init(10, 10);
 
-	int initResult = init(32, 24);
-	printf("Init: %d\n", initResult);
-
+	// for(int i = 0; i < 1000000; i++){
+	// 	showGrid();
+	// 	getchar();
+	// 	step(1);
+	// }
 	return 0;
 }
 #endif
